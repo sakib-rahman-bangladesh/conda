@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from glob import glob
 
-from conda._vendor.auxlib.compat import Utf8NamedTemporaryFile
+from conda.auxlib.compat import Utf8NamedTemporaryFile
 from conda._vendor.toolz.itertoolz import groupby
 from conda.gateways.disk.permissions import make_read_only
 from conda.models.channel import Channel
@@ -33,8 +33,8 @@ import requests
 
 from conda import CondaError, CondaMultiError, plan, __version__ as CONDA_VERSION, \
     CONDA_PACKAGE_ROOT
-from conda._vendor.auxlib.entity import EntityEncoder
-from conda._vendor.auxlib.ish import dals
+from conda.auxlib.entity import EntityEncoder
+from conda.auxlib.ish import dals
 from conda._vendor.toolz import concatv
 from conda.base.constants import CONDA_PACKAGE_EXTENSIONS, PACKAGE_CACHE_MAGIC_FILE, SafetyChecks, \
     PREFIX_MAGIC_FILE, DEFAULT_AGGRESSIVE_UPDATE_PACKAGES
@@ -42,7 +42,7 @@ from conda.base.context import Context, context, reset_context, conda_tests_ctxt
 from conda.cli.conda_argparse import do_call
 from conda.cli.main import generate_parser, init_loggers
 from conda.common.compat import (ensure_text_type, iteritems, string_types, text_type,
-                                 encode_arguments)
+                                 encode_arguments, on_win, on_mac)
 from conda.common.io import argv, captured, disable_logger, env_var, stderr_log_level, dashlist, env_vars
 from conda.common.path import get_bin_directory_short_path, get_python_site_packages_short_path, \
     pyc_path
@@ -66,7 +66,7 @@ from conda.models.match_spec import MatchSpec
 from conda.models.records import PackageRecord
 from conda.models.version import VersionOrder
 from conda.resolve import exactness_and_number_of_deps
-from conda.utils import massage_arguments, on_win
+from conda.utils import massage_arguments
 
 from .cases import BaseTestCase
 
@@ -101,7 +101,7 @@ SPACER_CHARACTER = ' '
 def escape_for_winpath(p):
     return p.replace('\\', '\\\\')
 
-from conda._vendor.auxlib.decorators import memoize
+from conda.auxlib.decorators import memoize
 
 @memoize
 def running_a_python_capable_of_unicode_subprocessing():
@@ -1991,7 +1991,7 @@ dependencies:
                 # install an "editable" urllib3 that cannot be managed
                 output, err, _ = run_command(Commands.RUN, prefix, '--cwd', workdir,
                                              "python", "-m", "pip", "install", "-e",
-                                             "git://github.com/urllib3/urllib3.git@1.19.1#egg=urllib3")
+                                             "git+https://github.com/urllib3/urllib3.git@1.19.1#egg=urllib3")
                 assert isfile(join(workdir, "src", "urllib3", "urllib3", "__init__.py"))
                 assert not isfile(join("src", "urllib3", "urllib3", "__init__.py"))
                 PrefixData._cache_.clear()
@@ -2607,6 +2607,7 @@ dependencies:
         assert env_which_etc
         assert not errs_etc
 
+    @pytest.mark.xfail(on_mac, reason="see #11128")
     def test_init_dev_and_NoBaseEnvironmentError(self):
         # This specific python version is named so that the test suite uses an
         # old python build that still hacks 'Library/bin' into PATH. Really, we
@@ -2787,6 +2788,7 @@ dependencies:
                 assert package_is_installed(prefix, 'openssl')
                 assert rs.call_count == 1
 
+    @pytest.mark.xfail(on_mac, reason="known broken; see #11127")
     def test_post_link_run_in_env(self):
         test_pkg = '_conda_test_env_activated_when_post_link_executed'
         # a non-unicode name must be provided here as activate.d scripts
