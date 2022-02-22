@@ -1,3 +1,6 @@
+# disable autofixing PRs, commenting "pre-commit.ci autofix" on a pull request triggers a autofix
+ci:
+    autofix_prs: false
 # generally speaking we ignore all vendored code as well as tests data
 exclude: |
   (?x)^(
@@ -29,7 +32,7 @@ repos:
       - id: fix-encoding-pragma
         exclude: ^conda/auxlib/
   - repo: https://github.com/akaihola/darker
-    rev: github-action-v1.3.2-2
+    rev: 1.4.1
     hooks:
       - id: darker
         additional_dependencies: [black==21.9b0]
@@ -55,7 +58,7 @@ repos:
         # ignore all tests, not just tests data
         exclude: ^tests/
   - repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.1.11
+    rev: v1.1.12
     hooks:
       - id: insert-license
         files: \.py$
